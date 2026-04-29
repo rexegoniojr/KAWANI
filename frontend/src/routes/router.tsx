@@ -1,36 +1,67 @@
+import * as React from 'react';
 import {
     createRootRoute,
     createRoute,
     createRouter,
+    createBrowserHistory,
     Outlet,
 } from '@tanstack/react-router';
-import KawaniLanding from '../pages/KawaniLanding';
 
-// 🌳 Root
+const KawaniLogin = React.lazy(() => import('../pages/login/KawaniLogin'));
+
+const PageSuspense = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <React.Suspense fallback={<div>Loading...</div>}>
+            {children}
+        </React.Suspense>
+    );
+}
+
+/** Root — wraps the entire tree */
 const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-    // notFoundComponent: NotFound,
+    component: () => (
+        <PageSuspense>
+            <Outlet />
+        </PageSuspense>
+    ),
+    // notFoundComponent: () => (
+    //     <PageSuspense>
+    //         <NotFound />
+    //     </PageSuspense>
+    // ),
 });
 
-// 🔓 Public Routes
-const landingRoute = createRoute({
+/** / — public landing */
+const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: KawaniLanding,
+    component: () => (
+        <PageSuspense>
+            <KawaniLogin />
+        </PageSuspense>
+    ),
 });
-
+// ---------------------------------------------------------------------------
+// Route tree
+// ---------------------------------------------------------------------------
 const routeTree = rootRoute.addChildren([
-    landingRoute
+    indexRoute,
 ]);
 
-// 🚀 Router
-export const router = createRouter({
+// ---------------------------------------------------------------------------
+// Router instance
+// ---------------------------------------------------------------------------
+const router = createRouter({
     routeTree,
+    history: createBrowserHistory(),
+    defaultPreload: 'intent',   // preloads route on hover / focus
 });
 
-// 🔥 Type safety (important)
+// Register router type globally for full TypeScript inference
 declare module '@tanstack/react-router' {
     interface Register {
         router: typeof router;
     }
 }
+
+export { router };
