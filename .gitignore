@@ -1,0 +1,5 @@
+**/.env
+**/node_modules/
+**/atoms-files/
+**/dist/
+**/package-lock.json
